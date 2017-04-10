@@ -12,7 +12,7 @@ except ImportError as e:
 import logging
 logger = logging.getLogger(__name__)
 
-class SoccerEnv(gym.Env, utils.EzPickle):
+class AsayerEnv(gym.Env, utils.EzPickle):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
@@ -75,23 +75,23 @@ class SoccerEnv(gym.Env, utils.EzPickle):
         log_game: Enable game logging. Logs can be used for replay + visualization.
         log_dir: Directory to place game logs (*.rcg).
         """
-        self.server_port = port
-        cmd = self.hfo_path + \
-              " --headless --frames-per-trial %i --untouched-time %i --offense-agents %i"\
-              " --defense-agents %i --offense-npcs %i --defense-npcs %i"\
-              " --port %i --offense-on-ball %i --seed %i --ball-x-min %f"\
-              " --ball-x-max %f --log-dir %s"\
-              % (frames_per_trial, untouched_time, offense_agents,
-                 defense_agents, offense_npcs, defense_npcs, port,
-                 offense_on_ball, seed, ball_x_min, ball_x_max,
-                 log_dir)
-        if not sync_mode: cmd += " --no-sync"
-        if fullstate:     cmd += " --fullstate"
-        if verbose:       cmd += " --verbose"
-        if not log_game:  cmd += " --no-logging"
-        print('Starting server with command: %s' % cmd)
-        self.server_process = subprocess.Popen(cmd.split(' '), shell=False)
-        time.sleep(10) # Wait for server to startup before connecting a player
+        # self.server_port = port
+        # cmd = self.hfo_path + \
+        #       " --headless --frames-per-trial %i --untouched-time %i --offense-agents %i"\
+        #       " --defense-agents %i --offense-npcs %i --defense-npcs %i"\
+        #       " --port %i --offense-on-ball %i --seed %i --ball-x-min %f"\
+        #       " --ball-x-max %f --log-dir %s"\
+        #       % (frames_per_trial, untouched_time, offense_agents,
+        #          defense_agents, offense_npcs, defense_npcs, port,
+        #          offense_on_ball, seed, ball_x_min, ball_x_max,
+        #          log_dir)
+        # if not sync_mode: cmd += " --no-sync"
+        # if fullstate:     cmd += " --fullstate"
+        # if verbose:       cmd += " --verbose"
+        # if not log_game:  cmd += " --no-logging"
+        # print('Starting server with command: %s' % cmd)
+        # self.server_process = subprocess.Popen(cmd.split(' '), shell=False)
+        # time.sleep(10) # Wait for server to startup before connecting a player
 
     def _start_viewer(self):
         """
@@ -99,46 +99,42 @@ class SoccerEnv(gym.Env, utils.EzPickle):
         used with a *.rcg logfile to replay a game. See details at
         https://github.com/LARG/HFO/blob/master/doc/manual.pdf.
         """
-        cmd = hfo_py.get_viewer_path() +\
-              " --connect --port %d" % (self.server_port)
+        cmd = "google-chrome https://www.asayer.io"
         self.viewer = subprocess.Popen(cmd.split(' '), shell=False)
 
     def _step(self, action):
-        self._take_action(action)
-        self.status = self.env.step()
-        reward = self._get_reward()
-        ob = self.env.getState()
-        episode_over = self.status != hfo_py.IN_GAME
-        return ob, reward, episode_over, {}
+        # self._take_action(action)
+        # self.status = self.env.step()
+        # reward = self._get_reward()
+        # ob = self.env.getState()
+        # episode_over = self.status != hfo_py.IN_GAME
+        # return ob, reward, episode_over, {}
 
     def _take_action(self, action):
         """ Converts the action space into an HFO action. """
-        action_type = ACTION_LOOKUP[action[0]]
-        if action_type == hfo_py.DASH:
-            self.env.act(action_type, action[1], action[2])
-        elif action_type == hfo_py.TURN:
-            self.env.act(action_type, action[3])
-        elif action_type == hfo_py.KICK:
-            self.env.act(action_type, action[4], action[5])
-        else:
-            print('Unrecognized action %d' % action_type)
-            self.env.act(hfo_py.NOOP)
+        # action_type = ACTION_LOOKUP[action[0]]
+        # if action_type == hfo_py.DASH:
+        #     self.env.act(action_type, action[1], action[2])
+        # elif action_type == hfo_py.TURN:
+        #     self.env.act(action_type, action[3])
+        # elif action_type == hfo_py.KICK:
+        #     self.env.act(action_type, action[4], action[5])
+        # else:
+        #     print('Unrecognized action %d' % action_type)
+        #     self.env.act(hfo_py.NOOP)
 
     def _get_reward(self):
         """ Reward is given for scoring a goal. """
-        if self.status == hfo_py.GOAL:
-            return 1
-        else:
-            return 0
+        return 0
 
     def _reset(self):
         """ Repeats NO-OP action until a new episode begins. """
-        while self.status == hfo_py.IN_GAME:
-            self.env.act(hfo_py.NOOP)
-            self.status = self.env.step()
-        while self.status != hfo_py.IN_GAME:
-            self.env.act(hfo_py.NOOP)
-            self.status = self.env.step()
+        # while self.status == hfo_py.IN_GAME:
+        #     self.env.act(hfo_py.NOOP)
+        #     self.status = self.env.step()
+        # while self.status != hfo_py.IN_GAME:
+        #     self.env.act(hfo_py.NOOP)
+        #     self.status = self.env.step()
         return self.env.getState()
 
     def _render(self, mode='human', close=False):
